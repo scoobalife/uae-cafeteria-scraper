@@ -1,0 +1,36 @@
+name: Scrape Talabat Menus
+
+on:
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install duckduckgo-search requests beautifulsoup4 pandas openpyxl
+
+      - name: Run Scraper
+        run: python scraper.py
+
+      - name: Commit & Push Results
+        run: |
+          if [ ! -f talabat_cafeterias.csv ]; then
+            echo "No talabat_cafeterias.csv produced - nothing to commit."
+            exit 0
+          fi
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add talabat_cafeterias.csv
+          git commit -m "Add scraped cafeteria menu dataset" || exit 0
+          git push
